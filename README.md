@@ -2,6 +2,10 @@
 
 An end-to-end **Data Analytics and Machine Learning** project developed using **Python**, **Streamlit**, and **Scikit-learn** to analyze healthcare data, identify patient risk levels, and provide interactive visualizations for data-driven decision-making.
 
+[![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)](https://healthcare-risk-management.streamlit.app/)
+[![Python](https://img.shields.io/badge/Python-3.11-blue?style=for-the-badge&logo=python)](https://www.python.org/)
+[![Streamlit](https://img.shields.io/badge/Built_with-Streamlit-red?style=for-the-badge&logo=streamlit)](https://streamlit.io/)
+
 ## 📌 Project Overview
 
 The Healthcare Risk Management Analytics System is designed to help healthcare professionals and data analysts explore patient records, monitor risk factors, and gain valuable insights through interactive dashboards and predictive analytics.
