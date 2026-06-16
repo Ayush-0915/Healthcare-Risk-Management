@@ -3,222 +3,288 @@ import pandas as pd
 import plotly.express as px
 from pathlib import Path
 
-# -------------------------------------------------
+from components.theme import load_css
+from components.cards import kpi_card
+from components.footer import show_footer
+from components.plotly_theme import apply_plotly_theme
+from components.sidebar import render_sidebar
+
+# --------------------------------------------------
 # Page Configuration
-# -------------------------------------------------
+# --------------------------------------------------
+BASE_DIR = Path(__file__).resolve().parent.parent
+logo_path = BASE_DIR / "assets" / "logo.png"
+
 st.set_page_config(
     page_title="Risk Analysis",
-    page_icon="🚨",
+    page_icon=str(logo_path),
     layout="wide"
 )
 
-# -------------------------------------------------
+load_css()
+
+# --------------------------------------------------
 # Load Data
-# -------------------------------------------------
+# --------------------------------------------------
 @st.cache_data
 def load_data():
-    data_path = (
-        Path(__file__).resolve().parent.parent
-        / "data"
-        / "cleaned_healthcare_dataset.csv"
+    return pd.read_csv(
+        BASE_DIR / "data" / "cleaned_healthcare_dataset.csv"
     )
-    return pd.read_csv(data_path)
+
 
 df = load_data()
 
-# -------------------------------------------------
-# Title
-# -------------------------------------------------
-st.title("🚨 Healthcare Risk Analysis Dashboard")
-st.markdown("Analyze patient risk levels and identify high-risk patterns.")
+# --------------------------------------------------
+# Sidebar & Navigation
+# --------------------------------------------------
+render_sidebar()
 
-# -------------------------------------------------
+# --------------------------------------------------
 # Sidebar Filters
-# -------------------------------------------------
-st.sidebar.header("🔍 Filters")
+# --------------------------------------------------
+st.sidebar.header("🎛️ Filters")
 
 risk_filter = st.sidebar.multiselect(
     "Risk Category",
-    sorted(df["Risk Category"].unique()),
-    default=sorted(df["Risk Category"].unique())
+    sorted(df["Risk Category"].dropna().unique()),
+    default=sorted(df["Risk Category"].dropna().unique())
+)
+
+gender_filter = st.sidebar.multiselect(
+    "Gender",
+    sorted(df["Gender"].dropna().unique()),
+    default=sorted(df["Gender"].dropna().unique())
 )
 
 condition_filter = st.sidebar.multiselect(
     "Medical Condition",
-    sorted(df["Medical Condition"].unique()),
-    default=sorted(df["Medical Condition"].unique())
+    sorted(df["Medical Condition"].dropna().unique()),
+    default=sorted(df["Medical Condition"].dropna().unique())
 )
 
 filtered = df[
     df["Risk Category"].isin(risk_filter)
+    & df["Gender"].isin(gender_filter)
     & df["Medical Condition"].isin(condition_filter)
 ]
 
-# -------------------------------------------------
+# --------------------------------------------------
 # KPI Cards
-# -------------------------------------------------
+# --------------------------------------------------
 high_risk = filtered[
     filtered["Risk Category"].isin(["High", "Critical"])
 ]
 
 c1, c2, c3, c4 = st.columns(4)
 
-c1.metric("👥 Total Patients", f"{len(filtered):,}")
-c2.metric("🚨 High Risk", f"{len(high_risk):,}")
-c3.metric(
-    "🛏 Avg Stay",
-    f"{filtered['Length of Stay'].mean():.1f} Days"
-)
-c4.metric(
-    "💰 Avg Billing",
-    f"${filtered['Billing Amount'].mean():,.0f}"
-)
+with c1:
+    kpi_card(
+        "Total Patients",
+        f"{len(filtered):,}",
+        icon="👥",
+        subtitle="Filtered Records",
+        color="#2563EB"
+    )
+
+with c2:
+    kpi_card(
+        "High Risk",
+        f"{len(high_risk):,}",
+        icon="🚨",
+        subtitle="High & Critical",
+        color="#EF4444"
+    )
+
+with c3:
+    kpi_card(
+        "Avg Billing",
+        f"${filtered['Billing Amount'].mean():,.0f}",
+        icon="💰",
+        subtitle="USD",
+        color="#10B981"
+    )
+
+with c4:
+    kpi_card(
+        "Avg Stay",
+        f"{filtered['Length of Stay'].mean():.1f} Days",
+        icon="🛏️",
+        subtitle="Hospital Stay",
+        color="#F59E0B"
+    )
 
 st.divider()
 
-# -------------------------------------------------
-# Risk Distribution
-# -------------------------------------------------
-left, right = st.columns(2)
+# --------------------------------------------------
+# Charts Row 1
+# --------------------------------------------------
+col1, col2 = st.columns(2)
 
-with left:
+with col1:
     fig = px.pie(
         filtered,
         names="Risk Category",
-        hole=0.55,
+        hole=0.65,
         title="Risk Category Distribution"
     )
-    st.plotly_chart(fig, use_container_width=True)
+    fig = apply_plotly_theme(fig)
+    st.plotly_chart(fig, width="stretch")
 
-with right:
-    risk_counts = (
-        filtered["Risk Category"]
-        .value_counts()
-        .reset_index()
+with col2:
+    admission = (
+        filtered.groupby(
+            ["Admission Type", "Risk Category"]
+        )
+        .size()
+        .reset_index(name="Patients")
     )
-    risk_counts.columns = ["Risk Category", "Count"]
 
     fig = px.bar(
-        risk_counts,
-        x="Risk Category",
-        y="Count",
-        title="Patients by Risk Category",
-        text="Count"
+        admission,
+        x="Admission Type",
+        y="Patients",
+        color="Risk Category",
+        barmode="group",
+        title="Admission Type vs Risk"
     )
 
-    st.plotly_chart(fig, use_container_width=True)
+    fig = apply_plotly_theme(fig)
+    st.plotly_chart(fig, width="stretch")
 
-# -------------------------------------------------
-# Top Medical Conditions
-# -------------------------------------------------
-condition_counts = (
-    filtered["Medical Condition"]
-    .value_counts()
-    .head(10)
-    .reset_index()
-)
+# --------------------------------------------------
+# Charts Row 2
+# --------------------------------------------------
+col1, col2 = st.columns(2)
 
-condition_counts.columns = [
-    "Medical Condition",
-    "Patients"
-]
+with col1:
+    top_conditions = (
+        high_risk["Medical Condition"]
+        .value_counts()
+        .head(10)
+        .reset_index()
+    )
 
-fig = px.bar(
-    condition_counts,
-    x="Medical Condition",
-    y="Patients",
-    title="Top Medical Conditions"
-)
+    top_conditions.columns = [
+        "Medical Condition",
+        "Patients"
+    ]
 
-st.plotly_chart(fig, use_container_width=True)
+    fig = px.bar(
+        top_conditions,
+        x="Medical Condition",
+        y="Patients",
+        title="Top High-Risk Medical Conditions"
+    )
 
-# -------------------------------------------------
-# Billing by Risk
-# -------------------------------------------------
-billing = (
-    filtered.groupby("Risk Category")["Billing Amount"]
-    .mean()
-    .reset_index()
-)
+    fig = apply_plotly_theme(fig)
+    st.plotly_chart(fig, width="stretch")
 
-fig = px.bar(
-    billing,
-    x="Risk Category",
-    y="Billing Amount",
-    title="Average Billing by Risk Category",
-    text_auto=".2s"
-)
+with col2:
+    billing = (
+        filtered.groupby("Risk Category")[
+            "Billing Amount"
+        ]
+        .mean()
+        .reset_index()
+    )
 
-st.plotly_chart(fig, use_container_width=True)
+    fig = px.bar(
+        billing,
+        x="Risk Category",
+        y="Billing Amount",
+        title="Average Billing by Risk"
+    )
 
-# -------------------------------------------------
-# Length of Stay by Risk
-# -------------------------------------------------
-stay = (
-    filtered.groupby("Risk Category")["Length of Stay"]
-    .mean()
-    .reset_index()
-)
+    fig = apply_plotly_theme(fig)
+    st.plotly_chart(fig, width="stretch")
 
-fig = px.bar(
-    stay,
-    x="Risk Category",
-    y="Length of Stay",
-    title="Average Length of Stay by Risk Category",
-    text_auto=True
-)
+# --------------------------------------------------
+# Charts Row 3
+# --------------------------------------------------
+col1, col2 = st.columns(2)
 
-st.plotly_chart(fig, use_container_width=True)
+with col1:
+    fig = px.box(
+        filtered,
+        x="Risk Category",
+        y="Length of Stay",
+        title="Length of Stay by Risk"
+    )
 
-# -------------------------------------------------
-# High-Risk Table
-# -------------------------------------------------
-st.subheader("🚨 High-Risk Patient Records")
+    fig = apply_plotly_theme(fig)
+    st.plotly_chart(fig, width="stretch")
 
-display_cols = [
-    "Name",
-    "Age",
-    "Gender",
-    "Medical Condition",
-    "Hospital",
-    "Admission Type",
-    "Risk Category",
-    "Billing Amount",
-    "Length of Stay",
+with col2:
+    gender_risk = (
+        filtered.groupby(
+            ["Gender", "Risk Category"]
+        )
+        .size()
+        .reset_index(name="Patients")
+    )
+
+    fig = px.bar(
+        gender_risk,
+        x="Gender",
+        y="Patients",
+        color="Risk Category",
+        barmode="group",
+        title="Gender vs Risk Category"
+    )
+
+    fig = apply_plotly_theme(fig)
+    st.plotly_chart(fig, width="stretch")
+
+# --------------------------------------------------
+# Executive Summary
+# --------------------------------------------------
+st.subheader("🧠 Executive Insights")
+
+st.success(f"""
+- 👥 Total Patients: **{len(filtered):,}**
+- 🚨 High/Critical Patients: **{len(high_risk):,}**
+- 💰 Average Billing: **${filtered['Billing Amount'].mean():,.2f}**
+- 🛏️ Average Stay: **{filtered['Length of Stay'].mean():.2f} Days**
+- 🩺 Most Common Condition: **{filtered['Medical Condition'].mode()[0]}**
+""")
+
+# --------------------------------------------------
+# High Risk Patient Table
+# --------------------------------------------------
+st.subheader("📋 High-Risk Patients")
+
+display_columns = [
+    col for col in [
+        "Name",
+        "Age",
+        "Gender",
+        "Medical Condition",
+        "Hospital",
+        "Doctor",
+        "Risk Category",
+        "Billing Amount",
+        "Length of Stay"
+    ]
+    if col in high_risk.columns
 ]
 
 st.dataframe(
-    high_risk[display_cols],
-    use_container_width=True,
+    high_risk[display_columns],
+    width="stretch",
     height=450
 )
 
-# -------------------------------------------------
-# Executive Insights
-# -------------------------------------------------
-st.divider()
-st.subheader("📌 Executive Insights")
-
-most_common = filtered["Medical Condition"].mode()[0]
-
-st.success(
-    f"""
-- 👥 Total filtered patients: **{len(filtered):,}**
-- 🚨 High/Critical risk patients: **{len(high_risk):,}**
-- 🩺 Most common medical condition: **{most_common}**
-- 💰 Average billing: **${filtered['Billing Amount'].mean():,.2f}**
-- 🛏 Average length of stay: **{filtered['Length of Stay'].mean():.2f} days**
-"""
-)
-
-# -------------------------------------------------
-# Download
-# -------------------------------------------------
 csv = high_risk.to_csv(index=False)
 
 st.download_button(
-    "⬇️ Download High-Risk Patients",
+    "⬇ Download High-Risk Patients",
     data=csv,
     file_name="high_risk_patients.csv",
     mime="text/csv"
 )
+
+# --------------------------------------------------
+# Footer
+# --------------------------------------------------
+show_footer()

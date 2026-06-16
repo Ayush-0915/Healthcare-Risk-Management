@@ -2,70 +2,73 @@ import streamlit as st
 import pandas as pd
 from pathlib import Path
 
-# -----------------------------
-# Page Config
-# -----------------------------
+from components.theme import load_css
+from components.cards import kpi_card
+from components.footer import show_footer
+from components.sidebar import render_sidebar
+
+# --------------------------------------------------
+# Page Configuration
+# --------------------------------------------------
+BASE_DIR = Path(__file__).resolve().parent.parent
+logo_path = BASE_DIR / "assets" / "logo.png"
+
 st.set_page_config(
     page_title="Patient Explorer",
-    page_icon="🏥",
+    page_icon=str(logo_path),
     layout="wide"
 )
 
-# -----------------------------
-# Load Data
-# -----------------------------
+load_css()
+
+# --------------------------------------------------
+# Load Dataset
+# --------------------------------------------------
 @st.cache_data
 def load_data():
-    data_path = (
-        Path(__file__).resolve().parent.parent
-        / "data"
-        / "cleaned_healthcare_dataset.csv"
+    return pd.read_csv(
+        BASE_DIR / "data" / "cleaned_healthcare_dataset.csv"
     )
-    return pd.read_csv(data_path)
+
 
 df = load_data()
 
-# -----------------------------
-# Title
-# -----------------------------
-st.title("🏥 Patient Explorer")
-st.markdown("Search, filter, and explore patient records interactively.")
+# --------------------------------------------------
+# Sidebar & Navigation
+# --------------------------------------------------
+render_sidebar()
 
-# -----------------------------
-# Search Bar
-# -----------------------------
-search_name = st.text_input(
-    "🔍 Search by Patient Name",
-    placeholder="Enter patient name..."
+# --------------------------------------------------
+# Sidebar Filters
+# --------------------------------------------------
+st.sidebar.header("🔍 Filters")
+
+search_text = st.sidebar.text_input(
+    "Search Patient Name"
 )
 
-# -----------------------------
-# Filters
-# -----------------------------
-st.sidebar.header("🎛️ Filters")
-
-gender = st.sidebar.multiselect(
+gender_filter = st.sidebar.multiselect(
     "Gender",
     sorted(df["Gender"].dropna().unique()),
     default=sorted(df["Gender"].dropna().unique())
 )
 
-condition = st.sidebar.multiselect(
+condition_filter = st.sidebar.multiselect(
     "Medical Condition",
     sorted(df["Medical Condition"].dropna().unique()),
     default=sorted(df["Medical Condition"].dropna().unique())
 )
 
-admission = st.sidebar.multiselect(
-    "Admission Type",
-    sorted(df["Admission Type"].dropna().unique()),
-    default=sorted(df["Admission Type"].dropna().unique())
-)
-
-risk = st.sidebar.multiselect(
+risk_filter = st.sidebar.multiselect(
     "Risk Category",
     sorted(df["Risk Category"].dropna().unique()),
     default=sorted(df["Risk Category"].dropna().unique())
+)
+
+admission_filter = st.sidebar.multiselect(
+    "Admission Type",
+    sorted(df["Admission Type"].dropna().unique()),
+    default=sorted(df["Admission Type"].dropna().unique())
 )
 
 age_range = st.sidebar.slider(
@@ -78,121 +81,188 @@ age_range = st.sidebar.slider(
     )
 )
 
-# -----------------------------
+# --------------------------------------------------
 # Apply Filters
-# -----------------------------
+# --------------------------------------------------
 filtered = df.copy()
 
 filtered = filtered[
-    filtered["Gender"].isin(gender)
+    filtered["Gender"].isin(gender_filter)
 ]
 
 filtered = filtered[
-    filtered["Medical Condition"].isin(condition)
+    filtered["Medical Condition"].isin(condition_filter)
 ]
 
 filtered = filtered[
-    filtered["Admission Type"].isin(admission)
+    filtered["Risk Category"].isin(risk_filter)
 ]
 
 filtered = filtered[
-    filtered["Risk Category"].isin(risk)
+    filtered["Admission Type"].isin(admission_filter)
 ]
 
 filtered = filtered[
-    (filtered["Age"] >= age_range[0]) &
+    (filtered["Age"] >= age_range[0])
+    &
     (filtered["Age"] <= age_range[1])
 ]
 
-if search_name:
+if (
+    search_text
+    and "Name" in filtered.columns
+):
     filtered = filtered[
         filtered["Name"].str.contains(
-            search_name,
+            search_text,
             case=False,
             na=False
         )
     ]
 
-# -----------------------------
-# Summary Cards
-# -----------------------------
-c1, c2, c3 = st.columns(3)
+# --------------------------------------------------
+# Summary
+# --------------------------------------------------
+st.markdown("## 📊 Summary")
 
-c1.metric("👥 Patients Found", len(filtered))
-c2.metric("🎂 Average Age", f"{filtered['Age'].mean():.1f}")
-c3.metric("💰 Avg Billing", f"${filtered['Billing Amount'].mean():,.0f}")
+c1, c2, c3, c4 = st.columns(4)
+
+with c1:
+    kpi_card(
+        "Patients",
+        f"{len(filtered):,}",
+        icon="👥",
+        subtitle="Filtered Records",
+        color="#2563EB"
+    )
+
+with c2:
+    kpi_card(
+        "Average Age",
+        f"{filtered['Age'].mean():.1f}",
+        icon="🎂",
+        subtitle="Years",
+        color="#06B6D4"
+    )
+
+with c3:
+    kpi_card(
+        "Average Billing",
+        f"${filtered['Billing Amount'].mean():,.0f}",
+        icon="💰",
+        subtitle="USD",
+        color="#10B981"
+    )
+
+with c4:
+    kpi_card(
+        "Average Stay",
+        f"{filtered['Length of Stay'].mean():.1f}",
+        icon="🛏️",
+        subtitle="Days",
+        color="#F59E0B"
+    )
 
 st.divider()
 
-# -----------------------------
+# --------------------------------------------------
 # Sort Options
-# -----------------------------
+# --------------------------------------------------
 sort_column = st.selectbox(
     "Sort By",
     [
         "Age",
         "Billing Amount",
-        "Length of Stay",
-        "Name"
+        "Length of Stay"
     ]
 )
 
-ascending = st.checkbox("Sort Ascending", value=True)
+ascending = st.checkbox(
+    "Ascending",
+    value=True
+)
 
 filtered = filtered.sort_values(
     by=sort_column,
     ascending=ascending
 )
 
-# -----------------------------
-# Display Table
-# -----------------------------
+# --------------------------------------------------
+# Data Table
+# --------------------------------------------------
 st.subheader("📋 Patient Records")
 
+display_columns = [
+    col for col in [
+        "Name",
+        "Age",
+        "Gender",
+        "Blood Type",
+        "Medical Condition",
+        "Admission Type",
+        "Hospital",
+        "Doctor",
+        "Medication",
+        "Test Results",
+        "Risk Category",
+        "Billing Amount",
+        "Length of Stay"
+    ]
+    if col in filtered.columns
+]
+
 st.dataframe(
-    filtered,
-    use_container_width=True,
-    height=600
+    filtered[display_columns],
+    width="stretch",
+    height=550
 )
 
-# -----------------------------
-# Download Button
-# -----------------------------
+# --------------------------------------------------
+# Download
+# --------------------------------------------------
 csv = filtered.to_csv(index=False)
 
 st.download_button(
-    label="⬇️ Download Filtered Data",
+    "⬇ Download Filtered Data",
     data=csv,
-    file_name="patient_records.csv",
+    file_name="patient_explorer.csv",
     mime="text/csv"
 )
 
-# -----------------------------
-# Quick Statistics
-# -----------------------------
+# --------------------------------------------------
+# Quick Insights
+# --------------------------------------------------
 st.divider()
-st.subheader("📊 Quick Insights")
 
 left, right = st.columns(2)
 
 with left:
-    st.write("**Top 5 Medical Conditions**")
+
+    st.subheader("🏥 Top Medical Conditions")
+
     st.dataframe(
         filtered["Medical Condition"]
         .value_counts()
-        .head(5)
+        .head(10)
         .rename_axis("Condition")
-        .reset_index(name="Count"),
-        use_container_width=True
+        .reset_index(name="Patients"),
+        width="stretch"
     )
 
 with right:
-    st.write("**Top 5 Hospitals by Patient Count**")
+
+    st.subheader("🏥 Top Hospitals")
+
     st.dataframe(
         filtered["Hospital"]
         .value_counts()
-        .head(5)
+        .head(10)
         .rename_axis("Hospital")
         .reset_index(name="Patients"),
-        use_container_width=True
+        width="stretch"
     )
+
+# --------------------------------------------------
+# Footer
+# --------------------------------------------------
+show_footer()

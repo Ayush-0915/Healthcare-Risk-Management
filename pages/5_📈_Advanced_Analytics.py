@@ -3,109 +3,129 @@ import pandas as pd
 import plotly.express as px
 from pathlib import Path
 
-# -------------------------------------------------------
-# Page Config
-# -------------------------------------------------------
+from components.theme import load_css
+from components.cards import kpi_card
+from components.footer import show_footer
+from components.plotly_theme import apply_plotly_theme
+from components.sidebar import render_sidebar
+
+# --------------------------------------------------
+# Page Configuration
+# --------------------------------------------------
+BASE_DIR = Path(__file__).resolve().parent.parent
+logo_path = BASE_DIR / "assets" / "logo.png"
+
 st.set_page_config(
     page_title="Advanced Analytics",
-    page_icon="📈",
+    page_icon=str(logo_path),
     layout="wide"
 )
 
-# -------------------------------------------------------
+load_css()
+
+# --------------------------------------------------
+# Sidebar & Navigation
+# --------------------------------------------------
+render_sidebar()
+
+# --------------------------------------------------
 # Load Data
-# -------------------------------------------------------
+# --------------------------------------------------
 @st.cache_data
 def load_data():
-    data_path = (
-        Path(__file__).resolve().parent.parent
-        / "data"
-        / "cleaned_healthcare_dataset.csv"
+    df = pd.read_csv(
+        BASE_DIR / "data" / "cleaned_healthcare_dataset.csv"
     )
 
-    df = pd.read_csv(data_path)
-
     df["Date of Admission"] = pd.to_datetime(
-        df["Date of Admission"]
+        df["Date of Admission"],
+        errors="coerce"
     )
 
     return df
 
-
 df = load_data()
 
-# -------------------------------------------------------
+# --------------------------------------------------
 # Title
-# -------------------------------------------------------
-st.title("📈 Advanced Healthcare Analytics")
+# --------------------------------------------------
+st.title("📈 Advanced Analytics")
 st.caption(
-    "Comprehensive insights into hospitals, billing, medications, insurance providers, and patient trends."
+    "Executive-level insights into admissions, hospitals, medications, insurance, and billing."
 )
 
-st.divider()
-
-# -------------------------------------------------------
-# KPI CARDS
-# -------------------------------------------------------
+# --------------------------------------------------
+# KPI Cards
+# --------------------------------------------------
 c1, c2, c3, c4 = st.columns(4)
 
-c1.metric(
-    "🏥 Hospitals",
-    df["Hospital"].nunique()
-)
+with c1:
+    kpi_card(
+        "Hospitals",
+        str(df["Hospital"].nunique()),
+        icon="🏥",
+        subtitle="Unique Hospitals",
+        color="#2563EB"
+    )
 
-c2.metric(
-    "👨‍⚕️ Doctors",
-    df["Doctor"].nunique()
-)
+with c2:
+    kpi_card(
+        "Doctors",
+        str(df["Doctor"].nunique()),
+        icon="👨‍⚕️",
+        subtitle="Unique Doctors",
+        color="#06B6D4"
+    )
 
-c3.metric(
-    "💊 Medications",
-    df["Medication"].nunique()
-)
+with c3:
+    kpi_card(
+        "Insurance Providers",
+        str(df["Insurance Provider"].nunique()),
+        icon="🛡️",
+        subtitle="Providers",
+        color="#10B981"
+    )
 
-c4.metric(
-    "🛡 Insurance Providers",
-    df["Insurance Provider"].nunique()
-)
+with c4:
+    kpi_card(
+        "Medications",
+        str(df["Medication"].nunique()),
+        icon="💊",
+        subtitle="Available",
+        color="#F59E0B"
+    )
 
 st.divider()
 
-# -------------------------------------------------------
-# Monthly Admissions Trend
-# -------------------------------------------------------
+# --------------------------------------------------
+# Monthly Admissions
+# --------------------------------------------------
 monthly = (
-    df.groupby(
-        df["Date of Admission"].dt.to_period("M")
-    )
+    df.groupby(df["Date of Admission"].dt.to_period("M"))
     .size()
     .reset_index(name="Admissions")
 )
 
-monthly["Date of Admission"] = monthly[
-    "Date of Admission"
-].astype(str)
+monthly["Date of Admission"] = monthly["Date of Admission"].astype(str)
 
 fig = px.line(
     monthly,
     x="Date of Admission",
     y="Admissions",
     markers=True,
-    title="📅 Monthly Admissions Trend"
+    title="📅 Monthly Admissions"
 )
 
-st.plotly_chart(
-    fig,
-    use_container_width=True
-)
+fig = apply_plotly_theme(fig)
 
-# -------------------------------------------------------
-# Top Hospitals
-# -------------------------------------------------------
-left, right = st.columns(2)
+st.plotly_chart(fig, width="stretch")
 
-with left:
+# --------------------------------------------------
+# Row 1
+# --------------------------------------------------
+col1, col2 = st.columns(2)
 
+with col1:
     hospitals = (
         df["Hospital"]
         .value_counts()
@@ -113,10 +133,7 @@ with left:
         .reset_index()
     )
 
-    hospitals.columns = [
-        "Hospital",
-        "Patients"
-    ]
+    hospitals.columns = ["Hospital", "Patients"]
 
     fig = px.bar(
         hospitals,
@@ -125,54 +142,44 @@ with left:
         title="🏥 Top Hospitals"
     )
 
-    st.plotly_chart(
-        fig,
-        use_container_width=True
-    )
+    fig = apply_plotly_theme(fig)
 
-with right:
+    st.plotly_chart(fig, width="stretch")
 
+with col2:
     insurance = (
         df["Insurance Provider"]
         .value_counts()
         .reset_index()
     )
 
-    insurance.columns = [
-        "Insurance",
-        "Patients"
-    ]
+    insurance.columns = ["Provider", "Patients"]
 
     fig = px.pie(
         insurance,
-        names="Insurance",
+        names="Provider",
         values="Patients",
-        hole=0.5,
-        title="🛡 Insurance Distribution"
+        hole=0.65,
+        title="🛡️ Insurance Distribution"
     )
 
-    st.plotly_chart(
-        fig,
-        use_container_width=True
-    )
+    fig = apply_plotly_theme(fig)
 
-# -------------------------------------------------------
-# Medication Analysis
-# -------------------------------------------------------
-left, right = st.columns(2)
+    st.plotly_chart(fig, width="stretch")
 
-with left:
+# --------------------------------------------------
+# Row 2
+# --------------------------------------------------
+col1, col2 = st.columns(2)
 
+with col1:
     meds = (
         df["Medication"]
         .value_counts()
         .reset_index()
     )
 
-    meds.columns = [
-        "Medication",
-        "Count"
-    ]
+    meds.columns = ["Medication", "Count"]
 
     fig = px.bar(
         meds,
@@ -181,126 +188,77 @@ with left:
         title="💊 Medication Usage"
     )
 
-    st.plotly_chart(
-        fig,
-        use_container_width=True
-    )
+    fig = apply_plotly_theme(fig)
 
-with right:
+    st.plotly_chart(fig, width="stretch")
 
-    tests = (
-        df["Test Results"]
-        .value_counts()
+with col2:
+    billing = (
+        df.groupby("Medical Condition")["Billing Amount"]
+        .mean()
         .reset_index()
+        .sort_values(
+            by="Billing Amount",
+            ascending=False
+        )
     )
 
-    tests.columns = [
-        "Result",
-        "Count"
-    ]
-
-    fig = px.pie(
-        tests,
-        names="Result",
-        values="Count",
-        title="🧪 Test Result Distribution"
+    fig = px.bar(
+        billing,
+        x="Medical Condition",
+        y="Billing Amount",
+        title="💰 Average Billing by Condition"
     )
 
-    st.plotly_chart(
-        fig,
-        use_container_width=True
-    )
+    fig = apply_plotly_theme(fig)
 
-# -------------------------------------------------------
-# Billing by Condition
-# -------------------------------------------------------
-billing = (
-    df.groupby(
-        "Medical Condition"
-    )["Billing Amount"]
-    .mean()
-    .sort_values(ascending=False)
-    .reset_index()
-)
+    st.plotly_chart(fig, width="stretch")
 
-fig = px.bar(
-    billing,
-    x="Medical Condition",
-    y="Billing Amount",
-    title="💰 Average Billing by Medical Condition"
-)
-
-st.plotly_chart(
-    fig,
-    use_container_width=True
-)
-
-# -------------------------------------------------------
-# Age Distribution by Gender
-# -------------------------------------------------------
-fig = px.histogram(
-    df,
-    x="Age",
-    color="Gender",
-    nbins=30,
-    title="👥 Age Distribution by Gender"
-)
-
-st.plotly_chart(
-    fig,
-    use_container_width=True
-)
-
-# -------------------------------------------------------
-# Length of Stay Analysis
-# -------------------------------------------------------
+# --------------------------------------------------
+# Length of Stay
+# --------------------------------------------------
 fig = px.box(
     df,
     x="Risk Category",
     y="Length of Stay",
-    title="🛏 Length of Stay by Risk Category"
+    title="🛏️ Length of Stay by Risk Category"
 )
 
-st.plotly_chart(
-    fig,
-    use_container_width=True
-)
+fig = apply_plotly_theme(fig)
 
-# -------------------------------------------------------
-# Executive Summary
-# -------------------------------------------------------
-st.divider()
+st.plotly_chart(fig, width="stretch")
 
-st.subheader("📋 Executive Summary")
+# --------------------------------------------------
+# Executive Insights
+# --------------------------------------------------
+st.subheader("🧠 Executive Insights")
 
-top_condition = (
-    df["Medical Condition"]
-    .value_counts()
-    .idxmax()
-)
-
-top_hospital = (
-    df["Hospital"]
-    .value_counts()
-    .idxmax()
-)
-
-top_medication = (
-    df["Medication"]
-    .value_counts()
-    .idxmax()
-)
+top_condition = df["Medical Condition"].mode()[0]
+top_hospital = df["Hospital"].mode()[0]
+top_medication = df["Medication"].mode()[0]
 
 st.success(f"""
-### Key Findings
-
-- 👥 Total Patients: **{len(df):,}**
-- 🏥 Total Hospitals: **{df['Hospital'].nunique()}**
-- 👨‍⚕️ Total Doctors: **{df['Doctor'].nunique()}**
+- 👥 Total Records: **{len(df):,}**
 - 🩺 Most Common Condition: **{top_condition}**
-- 🏥 Hospital with Highest Admissions: **{top_hospital}**
-- 💊 Most Prescribed Medication: **{top_medication}**
-- 💰 Average Billing Amount: **${df['Billing Amount'].mean():,.2f}**
-- 🛏 Average Length of Stay: **{df['Length of Stay'].mean():.2f} days**
-- 🎂 Average Patient Age: **{df['Age'].mean():.2f} years**
+- 🏥 Most Active Hospital: **{top_hospital}**
+- 💊 Most Used Medication: **{top_medication}**
+- 💰 Average Billing: **${df['Billing Amount'].mean():,.2f}**
+- 🛏️ Average Length of Stay: **{df['Length of Stay'].mean():.2f} Days**
 """)
+
+# --------------------------------------------------
+# Download
+# --------------------------------------------------
+csv = df.to_csv(index=False)
+
+st.download_button(
+    "⬇️ Download Dataset",
+    data=csv,
+    file_name="healthcare_dataset.csv",
+    mime="text/csv"
+)
+
+# --------------------------------------------------
+# Footer
+# --------------------------------------------------
+show_footer()

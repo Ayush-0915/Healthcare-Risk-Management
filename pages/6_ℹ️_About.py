@@ -1,152 +1,237 @@
 import streamlit as st
+import textwrap
+from pathlib import Path
+
+from components.theme import load_css
+from components.footer import show_footer
+from components.sidebar import render_sidebar
+
+# --------------------------------------------------
+# Page Configuration
+# --------------------------------------------------
+BASE_DIR = Path(__file__).resolve().parent.parent
+logo_path = BASE_DIR / "assets" / "logo.png"
 
 st.set_page_config(
     page_title="About",
-    page_icon="ℹ️",
+    page_icon=str(logo_path),
     layout="wide"
 )
 
-st.title("ℹ️ About the Project")
+load_css()
 
-st.markdown("""
-# 🏥 Healthcare Risk Management Analytics System
+# --------------------------------------------------
+# Sidebar & Navigation
+# --------------------------------------------------
+render_sidebar()
 
-This project is an interactive data analytics platform designed to analyze healthcare data,
-identify potential risk factors, and provide meaningful insights through visual dashboards
-and machine learning.
+# --------------------------------------------------
+# Header
+# --------------------------------------------------
+st.title("ℹ️ About This Project")
+st.caption("Healthcare Risk Management Analytics System")
 
-The application demonstrates how data-driven decision making can support hospitals,
-healthcare administrators, and analysts in monitoring patient trends and operational metrics.
-""")
+st.markdown("---")
 
-st.divider()
+# --------------------------------------------------
+# Developer Section
+# --------------------------------------------------
+col1, col2 = st.columns([1, 3])
 
-# -------------------------------------------------
-# Project Objectives
-# -------------------------------------------------
+with col1:
+    if logo_path.exists():
+        st.image(str(logo_path), width=180)
 
-st.header("🎯 Project Objectives")
+with col2:
+    st.markdown(
+        textwrap.dedent(
+            """
+            # 👨‍💻 Ayush Singh
 
-st.markdown("""
-- Analyze patient demographics and healthcare records.
-- Monitor risk categories and identify high-risk patients.
-- Explore admission trends and medical conditions.
-- Visualize billing, medications, and insurance data.
-- Use machine learning to predict patient risk levels.
-- Support data-driven healthcare decision making.
-""")
+            ### AI/ML Engineer & Data Analyst
 
-# -------------------------------------------------
+            Passionate about building intelligent data-driven applications
+            using Artificial Intelligence, Machine Learning, Python,
+            and Data Analytics.
+
+            Special interests:
+            - 🤖 Machine Learning
+            - 📊 Data Analytics
+            - 🐍 Python Development
+            - 📈 Business Intelligence
+            - 🏥 Healthcare Analytics
+            - ☁️ Streamlit Deployment
+            """
+        )
+    )
+
+st.markdown("---")
+
+# --------------------------------------------------
+# Project Overview
+# --------------------------------------------------
+st.header("🏥 Project Overview")
+
+st.markdown(
+    textwrap.dedent(
+        """
+        The **Healthcare Risk Management Analytics System** is an end-to-end
+        data analytics and machine learning application designed to analyze
+        healthcare records and predict patient risk levels.
+
+        ### Key Objectives
+
+        - 📊 Analyze healthcare datasets
+        - 🚨 Identify high-risk patients
+        - 🤖 Predict risk using Machine Learning
+        - 📈 Generate executive dashboards
+        - 🏥 Support healthcare decision-making
+        """
+    )
+)
+
+st.markdown("---")
+
+# --------------------------------------------------
 # Features
-# -------------------------------------------------
+# --------------------------------------------------
+st.header("✨ Features")
 
-st.header("✨ Key Features")
+col1, col2 = st.columns(2)
 
-st.markdown("""
-- 📊 Executive Dashboard with KPIs
-- 🏥 Patient Explorer with advanced filters
-- 🚨 Risk Analysis Dashboard
-- 🤖 AI-powered Risk Prediction
-- 📈 Advanced Healthcare Analytics
-- 📥 Download filtered data as CSV
-- 🎛️ Interactive visualizations using Plotly
-""")
+with col1:
+    st.success(
+        textwrap.dedent(
+            """
+            - 📊 Executive Dashboard
+            - 🏥 Patient Explorer
+            - 🚨 Risk Analysis
+            - 🤖 AI Risk Prediction
+            """
+        )
+    )
 
-# -------------------------------------------------
-# Dataset
-# -------------------------------------------------
+with col2:
+    st.success(
+        textwrap.dedent(
+            """
+            - 📈 Advanced Analytics
+            - 📥 CSV Export
+            - 🎨 Interactive Visualizations
+            - 💻 Responsive Streamlit UI
+            """
+        )
+    )
 
-st.header("📁 Dataset Information")
+st.markdown("---")
 
-st.markdown("""
-The project uses a synthetic healthcare dataset containing information such as:
-
-- Patient demographics
-- Medical conditions
-- Admission and discharge dates
-- Blood type
-- Medications
-- Test results
-- Insurance providers
-- Billing amounts
-- Hospital details
-
-The dataset is intended for educational and analytical purposes.
-""")
-
-# -------------------------------------------------
+# --------------------------------------------------
 # Tech Stack
-# -------------------------------------------------
+# --------------------------------------------------
+st.header("🛠️ Technology Stack")
 
-st.header("🛠️ Technologies Used")
+tech1, tech2, tech3 = st.columns(3)
 
-st.markdown("""
-| Category | Technology |
-|----------|------------|
-| Programming | Python |
-| Data Analysis | Pandas, NumPy |
-| Visualization | Plotly, Matplotlib |
-| Machine Learning | Scikit-learn |
-| Web Framework | Streamlit |
-| Model Storage | Joblib |
-""")
+with tech1:
+    st.info(
+        textwrap.dedent(
+            """
+            ### Programming
+            - Python
+            - Pandas
+            - NumPy
+            - Joblib
+            """
+        )
+    )
 
-# -------------------------------------------------
-# Risk Score
-# -------------------------------------------------
+with tech2:
+    st.info(
+        textwrap.dedent(
+            """
+            ### Visualization
+            - Plotly
+            - Streamlit
+            - CSS
+            - HTML
+            """
+        )
+    )
 
-st.header("🚨 Risk Assessment Logic")
+with tech3:
+    st.info(
+        textwrap.dedent(
+            """
+            ### Machine Learning
+            - Scikit-learn
+            - Label Encoding
+            - Classification Models
+            - Risk Prediction
+            """
+        )
+    )
 
-st.markdown("""
-The application estimates patient risk based on multiple factors such as:
+st.markdown("---")
 
-- Senior citizen status
-- Emergency admission
-- Abnormal test results
-- Length of hospital stay
+# --------------------------------------------------
+# Dataset Summary
+# --------------------------------------------------
+st.header("📂 Dataset Highlights")
 
-These factors are combined into a risk score and categorized into:
-- 🟢 Low
-- 🟡 Medium
-- 🟠 High
-- 🔴 Critical
-""")
+st.markdown(
+    textwrap.dedent(
+        """
+        The application analyzes healthcare records containing:
 
-# -------------------------------------------------
-# Developer
-# -------------------------------------------------
+        - 👤 Age
+        - 🚻 Gender
+        - 🩸 Blood Type
+        - 🏥 Hospital
+        - 👨‍⚕️ Doctor
+        - 🩺 Medical Condition
+        - 💊 Medication
+        - 📋 Test Results
+        - 💰 Billing Amount
+        - 🛏️ Length of Stay
+        - 🚨 Risk Category
+        """
+    )
+)
 
-st.header("👨‍💻 Developer")
+st.markdown("---")
 
-st.markdown("""
-## Ayush Singh
+# --------------------------------------------------
+# Live Application
+# --------------------------------------------------
+st.header("🌐 Live Demo")
 
-**Role:** AI/ML Engineer & Data Analyst
+st.success(
+    "🚀 https://healthcare-risk-management.streamlit.app/"
+)
 
-### 🛠️ Technical Skills
-- Python
-- Machine Learning
-- Data Analysis
-- Data Visualization
-- Streamlit
-- Pandas
-- NumPy
-- Scikit-learn
-- Plotly
-- Matplotlib
+st.markdown("---")
 
-### 🚀 About the Developer
-Passionate about building intelligent, data-driven applications that solve real-world problems using Artificial Intelligence, Machine Learning, and Data Analytics. Experienced in developing interactive dashboards, predictive models, and end-to-end analytics solutions.
+# --------------------------------------------------
+# Contact
+# --------------------------------------------------
+st.header("📬 Contact")
 
-### 💡 Areas of Interest
-- Artificial Intelligence
-- Machine Learning
-- Data Analytics
-- Business Intelligence
-- Predictive Modeling
-- Healthcare Analytics
-""")
+st.markdown(
+    textwrap.dedent(
+        """
+        ### 👨‍💻 Ayush Singh
 
-st.divider()
+        - 💼 Role: **AI/ML Engineer & Data Analyst**
+        - 🌍 Portfolio Project: **Healthcare Risk Management Analytics System**
 
-st.success("🎉 Thank you for exploring the Healthcare Risk Management Analytics System!")
+        You can add your GitHub and LinkedIn profile links here before publishing.
+        """
+    )
+)
+
+st.markdown("---")
+
+# --------------------------------------------------
+# Footer
+# --------------------------------------------------
+show_footer()
