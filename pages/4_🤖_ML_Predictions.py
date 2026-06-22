@@ -80,11 +80,6 @@ with st.form("prediction_form"):
             sorted(df["Blood Type"].dropna().unique())
         )
 
-        admission_type = st.selectbox(
-            "Admission Type",
-            sorted(df["Admission Type"].dropna().unique())
-        )
-
     with col2:
 
         medical_condition = st.selectbox(
@@ -95,11 +90,6 @@ with st.form("prediction_form"):
         medication = st.selectbox(
             "Medication",
             sorted(df["Medication"].dropna().unique())
-        )
-
-        test_result = st.selectbox(
-            "Test Results",
-            sorted(df["Test Results"].dropna().unique())
         )
 
         length_of_stay = st.slider(
@@ -123,9 +113,7 @@ if predict_button:
         "Gender": [gender],
         "Blood Type": [blood_type],
         "Medical Condition": [medical_condition],
-        "Admission Type": [admission_type],
         "Medication": [medication],
-        "Test Results": [test_result],
         "Length of Stay": [length_of_stay]
     })
 
@@ -133,9 +121,7 @@ if predict_button:
         "Gender",
         "Blood Type",
         "Medical Condition",
-        "Admission Type",
-        "Medication",
-        "Test Results"
+        "Medication"
     ]
 
     try:
@@ -257,9 +243,13 @@ st.subheader("📘 About This Model")
 st.info(
     textwrap.dedent(
         """
-        This machine learning model predicts a patient's healthcare
-        risk category using demographic information, admission details,
-        medical condition, medication history, and test results.
+        This machine learning model predicts a patient's risk category
+        using demographic information (Age, Gender, Blood Type), clinical
+        features (Medical Condition, Medication), and Length of Stay.
+
+        To prevent target leakage and ensure clinical validity, post-admission
+        lab outcome features (such as Test Results) and logistics details (such
+        as Admission Type) are excluded from the prediction pipeline.
 
         The prediction is intended as an analytical aid and should not
         replace professional medical judgment.

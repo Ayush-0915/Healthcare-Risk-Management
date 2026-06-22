@@ -213,7 +213,7 @@ display_columns = [
 
 st.dataframe(
     filtered[display_columns],
-    width="stretch",
+    use_container_width=True,
     height=550
 )
 
@@ -246,7 +246,7 @@ with left:
         .head(10)
         .rename_axis("Condition")
         .reset_index(name="Patients"),
-        width="stretch"
+        use_container_width=True
     )
 
 with right:
@@ -259,7 +259,7 @@ with right:
         .head(10)
         .rename_axis("Hospital")
         .reset_index(name="Patients"),
-        width="stretch"
+        use_container_width=True
     )
 
 # --------------------------------------------------

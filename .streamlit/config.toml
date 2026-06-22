@@ -1,6 +1,9 @@
 [theme]
-primaryColor = "#2563EB"
-backgroundColor = "#F8FAFC"
-secondaryBackgroundColor = "#E2E8F0"
-textColor = "#111827"
+primaryColor = "#38BDF8"             # Cyan/Light Blue matching the UI accents
+backgroundColor = "#040A12"           # Dark deep blue matching the gradient start
+secondaryBackgroundColor = "#0B2133"  # Slightly lighter dark blue for cards/widgets
+textColor = "#F8FAFC"                 # Slate-50 for clean text readability
 font = "sans serif"
+
+[client]
+showSidebarNavigation = false

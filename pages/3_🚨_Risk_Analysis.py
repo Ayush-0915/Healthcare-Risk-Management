@@ -129,7 +129,7 @@ with col1:
         title="Risk Category Distribution"
     )
     fig = apply_plotly_theme(fig)
-    st.plotly_chart(fig, width="stretch")
+    st.plotly_chart(fig, use_container_width=True)
 
 with col2:
     admission = (
@@ -150,7 +150,7 @@ with col2:
     )
 
     fig = apply_plotly_theme(fig)
-    st.plotly_chart(fig, width="stretch")
+    st.plotly_chart(fig, use_container_width=True)
 
 # --------------------------------------------------
 # Charts Row 2
@@ -178,7 +178,7 @@ with col1:
     )
 
     fig = apply_plotly_theme(fig)
-    st.plotly_chart(fig, width="stretch")
+    st.plotly_chart(fig, use_container_width=True)
 
 with col2:
     billing = (
@@ -197,7 +197,7 @@ with col2:
     )
 
     fig = apply_plotly_theme(fig)
-    st.plotly_chart(fig, width="stretch")
+    st.plotly_chart(fig, use_container_width=True)
 
 # --------------------------------------------------
 # Charts Row 3
@@ -213,7 +213,7 @@ with col1:
     )
 
     fig = apply_plotly_theme(fig)
-    st.plotly_chart(fig, width="stretch")
+    st.plotly_chart(fig, use_container_width=True)
 
 with col2:
     gender_risk = (
@@ -234,7 +234,7 @@ with col2:
     )
 
     fig = apply_plotly_theme(fig)
-    st.plotly_chart(fig, width="stretch")
+    st.plotly_chart(fig, use_container_width=True)
 
 # --------------------------------------------------
 # Executive Summary
@@ -271,7 +271,7 @@ display_columns = [
 
 st.dataframe(
     high_risk[display_columns],
-    width="stretch",
+    use_container_width=True,
     height=450
 )
 

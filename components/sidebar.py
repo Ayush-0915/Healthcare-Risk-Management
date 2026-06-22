@@ -15,7 +15,7 @@ def render_sidebar():
     if logo_path.exists():
         st.sidebar.image(
             str(logo_path),
-            width="stretch"
+            use_container_width=True
         )
 
     st.sidebar.markdown(

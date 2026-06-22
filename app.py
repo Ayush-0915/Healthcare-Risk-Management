@@ -246,7 +246,7 @@ available_cols = [
 
 st.dataframe(
     df[available_cols].head(20),
-    width="stretch"
+    use_container_width=True
 )
 
 st.success(

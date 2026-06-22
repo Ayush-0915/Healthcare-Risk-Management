@@ -157,7 +157,7 @@ with left:
 
     st.plotly_chart(
         fig,
-        width="stretch"
+        use_container_width=True
     )
 
 with right:
@@ -189,7 +189,7 @@ with right:
 
     st.plotly_chart(
         fig,
-        width="stretch"
+        use_container_width=True
     )
 
 # --------------------------------------------------
@@ -224,7 +224,7 @@ with left:
 
     st.plotly_chart(
         fig,
-        width="stretch"
+        use_container_width=True
     )
 
 with right:
@@ -241,7 +241,7 @@ with right:
 
     st.plotly_chart(
         fig,
-        width="stretch"
+        use_container_width=True
     )
 
 # --------------------------------------------------
@@ -270,7 +270,7 @@ with left:
 
     st.plotly_chart(
         fig,
-        width="stretch"
+        use_container_width=True
     )
 
 with right:
@@ -286,7 +286,7 @@ with right:
 
     st.plotly_chart(
         fig,
-        width="stretch"
+        use_container_width=True
     )
 
 # --------------------------------------------------
@@ -329,7 +329,7 @@ preview_columns = [
 
 st.dataframe(
     filtered[preview_columns].head(100),
-    width="stretch",
+    use_container_width=True,
     height=450
 )
 

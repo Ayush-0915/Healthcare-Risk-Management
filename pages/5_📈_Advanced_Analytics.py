@@ -118,7 +118,7 @@ fig = px.line(
 
 fig = apply_plotly_theme(fig)
 
-st.plotly_chart(fig, width="stretch")
+st.plotly_chart(fig, use_container_width=True)
 
 # --------------------------------------------------
 # Row 1
@@ -144,7 +144,7 @@ with col1:
 
     fig = apply_plotly_theme(fig)
 
-    st.plotly_chart(fig, width="stretch")
+    st.plotly_chart(fig, use_container_width=True)
 
 with col2:
     insurance = (
@@ -165,7 +165,7 @@ with col2:
 
     fig = apply_plotly_theme(fig)
 
-    st.plotly_chart(fig, width="stretch")
+    st.plotly_chart(fig, use_container_width=True)
 
 # --------------------------------------------------
 # Row 2
@@ -190,7 +190,7 @@ with col1:
 
     fig = apply_plotly_theme(fig)
 
-    st.plotly_chart(fig, width="stretch")
+    st.plotly_chart(fig, use_container_width=True)
 
 with col2:
     billing = (
@@ -212,7 +212,7 @@ with col2:
 
     fig = apply_plotly_theme(fig)
 
-    st.plotly_chart(fig, width="stretch")
+    st.plotly_chart(fig, use_container_width=True)
 
 # --------------------------------------------------
 # Length of Stay
@@ -226,7 +226,7 @@ fig = px.box(
 
 fig = apply_plotly_theme(fig)
 
-st.plotly_chart(fig, width="stretch")
+st.plotly_chart(fig, use_container_width=True)
 
 # --------------------------------------------------
 # Executive Insights
