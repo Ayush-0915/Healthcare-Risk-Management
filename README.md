@@ -17,15 +17,7 @@ Developed with a premium, responsive **dark-mode glassmorphic UI**, the system p
 
 ---
 
-## 🎨 Screenshots
 
-> [!NOTE]
-> Below are placeholders for dashboard screenshots. When deploying, replace these with active URLs of your application views.
-
-| Executive Dashboard |
-(<img width="1919" height="893" alt="image" src="https://github.com/user-attachments/assets/78263df3-cb2c-4397-a420-314e91c7501d" />
-) 
----
 
 ## ✨ Features
 
